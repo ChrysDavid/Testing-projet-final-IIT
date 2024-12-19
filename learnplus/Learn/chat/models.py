@@ -7,6 +7,7 @@ from django.dispatch import receiver
 class Salon(models.Model):
     """Model definition for Salon."""
 
+    id = models.BigAutoField(primary_key=True)  # Clé primaire explicite
     nom = models.CharField(max_length=250, null=True)
     classe = models.OneToOneField(school_models.Classe, on_delete=models.CASCADE, related_name="class_room", null=True)
     date_add = models.DateTimeField(auto_now=False, auto_now_add=True)

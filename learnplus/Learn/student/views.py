@@ -256,26 +256,24 @@ def courses(request):
             print("3")
             return redirect("/admin/")
     
-# @login_required(login_url = 'login')
-# def dashboard(request):
-#     if request.user.is_authenticated:
-#         try:
-#             try:
-#                 print("1")
-#                 if request.user.instructor:
-#                     return redirect('dashboard')
-#             except Exception as e:
-#                 print(e)
-#                 print("2")
-#                 if request.user.student_user:
-#                     datas = {
 
-#                            }
-#                 return render(request,'pages/fixed-student-dashboard.html',datas)
-#         except Exception as e:
-#             print(e)
-#             print("3")
-#             return redirect("/admin/")
+
+@login_required(login_url='login')
+def dashboard(request):
+    try:
+        if hasattr(request.user, 'instructor'):
+            return render(request, 'pages/instructor-dashboard.html', {})
+        elif hasattr(request.user, 'student_user'):
+            datas = {}
+            return render(request, 'pages/fixed-student-dashboard.html', datas)
+        else:
+            return redirect('/admin/')  # Redirection par défaut
+    except Exception as e:
+        print(f"Erreur dans dashboard: {e}")
+        return redirect('/admin/')
+
+
+        
 
 @login_required(login_url = 'login')
 def earnings(request):
