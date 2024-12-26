@@ -1,4 +1,3 @@
-
 {% extends 'bases/header_i_chat.html' %}
 
 {% block content %}
@@ -69,7 +68,7 @@
 
 
                                 <li class="list-group-item px-4 py-3 bg-light">
-                                    <a href="#" class="d-flex align-items-center position-relative">
+                                    <a href="{% url 'instructor-profile' %}" class="d-flex align-items-center position-relative">
                                         <span class="avatar avatar-sm mr-3 flex-shrink-0">
 
                                             <img src="{{ user.instructor.photo.url}}" alt="Avatar"
@@ -130,8 +129,8 @@
     console.log(classe)
 
     var chatSocket = new ReconnectingWebSocket(
-        `ws://` + window.location.host +
-        `/ws/instructor/messages/` + classe + `/`);
+        ws:// + window.location.host +
+        /ws/instructor/messages/ + classe + /);
 
     chatSocket.onopen = function (e) {
         fecthMessages();
@@ -243,4 +242,3 @@
 </script>
 
 {% endblock script %}
-    

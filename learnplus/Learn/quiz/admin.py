@@ -46,13 +46,18 @@ class QuizAdmin(CustomAdmin):
     ]
 
 class DevoirAdmin(CustomAdmin):
-    list_display = ('dateDebut','dateFermeture','chapitre','coefficient','support','status')
+    list_display = ('dateDebut', 'dateFermeture', 'chapitre', 'coefficient', 'support', 'status')
     list_display_links = ('chapitre',)
-    search_fields = ('chapitre',)
+    search_fields = ('chapitre__titre',)  # Recherche dans le titre du chapitre
     fieldsets = [
-                 ("info devoir",{"fields":["dateDebut","dateFermeture",'chapitre','support' ]}),
-                 ("standard",{"fields":["status"]})
+        ("Info Devoir", {
+            "fields": ["dateDebut", "dateFermeture", 'chapitre', 'support', 'coefficient']
+        }),
+        ("Standard", {
+            "fields": ["status"]
+        }),
     ]
+
 
 
 def _register(model,admin_class):

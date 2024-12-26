@@ -22,13 +22,25 @@ urlpatterns = [
     path('help_center', views.help_center, name='help-center'),
     path('messages/<str:classe>/', views.messages, name='messages'),
     path('my_courses', views.my_courses, name='my-courses'),
-    path('quiz_list', views.quiz_list, name='quiz-list'),
+    path('quiz_list/', views.quiz_list, name='quiz-list'),
+    path('take_quiz/<slug:slug>/', views.take_quiz, name='take-quiz'),
+    path('take_devoir/<slug:slug>/', views.take_devoir, name='take-devoir'),
     path('profile', views.profile, name='profile'),
     path('profile_posts', views.profile_posts, name='profile-posts'),
-    path('quiz_results', views.quiz_results, name='quiz-results'),
+    # path('quiz_results', views.quiz_results, name='quiz-results'),
+
+
+
+    path('submit_quiz/<slug:quiz_slug>/', views.submit_quiz, name='submit-quiz'),
+    path('quiz_results/', views.quiz_results, name='quiz-results'),  # Pour voir tous les résultats
+    path('quiz_results/<int:result_id>/', views.quiz_results, name='quiz-result-detail'),
+    path('my_results/', views.my_quiz_results, name='my-quiz-results'),
+
+
+
     path('quizzes', views.quizzes, name='quizzes'),
     path('take_course/<slug>', views.take_course, name='take-course'),
-    path('take_quiz', views.take_quiz, name='take-quiz'),
+    
     path('view_course', views.view_course, name='view-course'),
 
 
@@ -37,5 +49,6 @@ urlpatterns = [
     path('update_password', views.update_password, name='update_password'),
     path('post_forum', views.post_forum, name='post_forum'),
     path('post_forum_g', views.post_forum_g, name='post_forum_g'),
+    
 
 ]

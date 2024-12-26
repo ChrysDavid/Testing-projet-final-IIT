@@ -10,7 +10,11 @@ import json
 from django.http import JsonResponse 
 from django.contrib.auth.models import User
 from . import models
+from quiz.models import Quiz, Devoir, QuizResult, QuestionResponse, Question
 from django.contrib.auth import authenticate, login
+from django.shortcuts import get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
 
 
 # Create your views here.
@@ -256,24 +260,26 @@ def courses(request):
             print("3")
             return redirect("/admin/")
     
+# @login_required(login_url = 'login')
+# def dashboard(request):
+#     if request.user.is_authenticated:
+#         try:
+#             try:
+#                 print("1")
+#                 if request.user.instructor:
+#                     return redirect('dashboard')
+#             except Exception as e:
+#                 print(e)
+#                 print("2")
+#                 if request.user.student_user:
+#                     datas = {
 
-
-@login_required(login_url='login')
-def dashboard(request):
-    try:
-        if hasattr(request.user, 'instructor'):
-            return render(request, 'pages/instructor-dashboard.html', {})
-        elif hasattr(request.user, 'student_user'):
-            datas = {}
-            return render(request, 'pages/fixed-student-dashboard.html', datas)
-        else:
-            return redirect('/admin/')  # Redirection par défaut
-    except Exception as e:
-        print(f"Erreur dans dashboard: {e}")
-        return redirect('/admin/')
-
-
-        
+#                            }
+#                 return render(request,'pages/fixed-student-dashboard.html',datas)
+#         except Exception as e:
+#             print(e)
+#             print("3")
+#             return redirect("/admin/")
 
 @login_required(login_url = 'login')
 def earnings(request):
@@ -516,27 +522,14 @@ def my_courses(request):
             print(e)
             print("3")
             return redirect("/admin/")
+        
 
-@login_required(login_url = 'login')
-def quiz_list(request):
-    if request.user.is_authenticated:
-        try:
-            try:
-                print("1")
-                if request.user.instructor:
-                    return redirect('dashboard')
-            except Exception as e:
-                print(e)
-                print("2")
-                if request.user.student_user:
-                    datas = {
 
-                           }
-                return render(request,'pages/fixed-student-quiz-list.html',datas)
-        except Exception as e:
-            print(e)
-            print("3")
-            return redirect("/admin/")
+
+
+
+
+
 
 @login_required(login_url = 'login')
 def profile(request):
@@ -581,8 +574,69 @@ def profile_posts(request):
             return redirect("/admin/")
     
 
-@login_required(login_url = 'login')
-def quiz_results(request):
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+@login_required(login_url='login')
+def submit_quiz(request, quiz_slug):
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Method not allowed'})
+
+    try:
+        quiz = get_object_or_404(Quiz, slug=quiz_slug)
+        data = json.loads(request.body)
+        answers = data.get('answers', {})
+        time_taken = data.get('timeTaken', 0)
+
+        total_questions = quiz.quiz_question.count()
+        correct_answers = 0
+        
+        quiz_result = QuizResult.objects.create(
+            student=request.user,
+            quiz=quiz,
+            total_questions=total_questions,
+            completion_time=time_taken
+        )
+
+        for question_id, selected_answers in answers.items():
+            question = Question.objects.get(id=question_id)
+            correct_answer = question.question_reponse.filter(is_True=True).first()
+            is_correct = str(selected_answers[0]) == str(correct_answer.id) if selected_answers else False
+            
+            if is_correct:
+                correct_answers += 1
+
+            QuestionResponse.objects.create(
+                quiz_result=quiz_result,
+                question=question,
+                selected_answer=str(selected_answers),
+                is_correct=is_correct
+            )
+
+        score = (correct_answers / total_questions) * 100
+        quiz_result.score = score
+        quiz_result.correct_answers = correct_answers
+        quiz_result.save()
+
+        return JsonResponse({
+            'success': True,
+            'result_id': quiz_result.id
+        })
+
+    except Exception as e:
+        print(f"Error in submit_quiz: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'message': str(e)
+        })
+
+@login_required(login_url='login')
+def quiz_results(request, result_id=None):
     if request.user.is_authenticated:
         try:
             try:
@@ -593,14 +647,58 @@ def quiz_results(request):
                 print(e)
                 print("2")
                 if request.user.student_user:
-                    datas = {
-
-                           }
-                return render(request,'pages/fixed-student-quiz-results.html',datas)
+                    if result_id:
+                        # Récupérer le résultat spécifique
+                        quiz_result = get_object_or_404(QuizResult, id=result_id, student=request.user)
+                        question_responses = quiz_result.question_responses.all().select_related('question')
+                        
+                        datas = {
+                            'result': quiz_result,
+                            'responses': question_responses,
+                            'completion_time_minutes': quiz_result.completion_time // 60,
+                            'completion_time_seconds': quiz_result.completion_time % 60
+                        }
+                    else:
+                        # Récupérer tous les résultats de l'étudiant
+                        results = QuizResult.objects.filter(
+                            student=request.user
+                        ).select_related('quiz').order_by('-completed_at')
+                        
+                        datas = {
+                            'results': results
+                        }
+                    
+                    return render(request, 'pages/fixed-student-quiz-results.html', datas)
         except Exception as e:
             print(e)
             print("3")
-            return redirect("/admin/")
+            return redirect('index_student')  # Redirection vers la page d'accueil étudiant au lieu de /admin/
+        
+    return redirect('login')
+
+
+
+
+@login_required(login_url='login')
+def my_quiz_results(request):
+    if request.user.is_authenticated:
+        try:
+            results = QuizResult.objects.filter(
+                student=request.user
+            ).select_related('quiz').order_by('-completed_at')
+            
+            context = {
+                'results': results
+            }
+            return render(request, 'pages/fixed-student-my-results.html', context)
+            
+        except Exception as e:
+            print(f"Error in my_quiz_results: {str(e)}")
+            return redirect('quiz-list')
+        
+
+        
+# ------------------------------------------------------------------------------------------------------------------------
 
 @login_required(login_url = 'login')
 def quizzes(request):
@@ -692,28 +790,122 @@ def take_course(request, slug):
             print(e)
             print("3")
             return redirect('my_courses')
-   
+        
 
-@login_required(login_url = 'login')
-def take_quiz(request):
+# /////////////////////////////////////////////////////////////////////////////
+        
+
+@login_required(login_url='login')
+def quiz_list(request):
+    try:
+        if hasattr(request.user, 'instructor'):
+            messages.warning(request, "Les instructeurs n'ont pas accès à cette page.")
+            return redirect('dashboard')
+        
+        if hasattr(request.user, 'student_user'):
+            quizzes = Quiz.objects.filter(status=True).select_related('cours')
+            devoirs = Devoir.objects.filter(status=True).select_related('chapitre')
+
+            items = []
+            for quiz in quizzes:
+                items.append({
+                    "type": "Quiz",
+                    "title": quiz.titre,
+                    "date": quiz.date,
+                    "slug": quiz.slug,
+                    "cours": quiz.cours.titre,
+                    "temps": f"{quiz.temps} minutes",
+                    "status": "En cours" if quiz.status else "Terminé"
+                })
+
+            for devoir in devoirs:
+                items.append({
+                    "type": "Devoir",
+                    "title": devoir.sujet,
+                    "date": devoir.dateDebut.strftime("%Y-%m-%d %H:%M"),
+                    "slug": devoir.slug,
+                    "chapitre": devoir.chapitre.titre,
+                    "deadline": devoir.dateFermeture.strftime("%Y-%m-%d %H:%M"),
+                    "coefficient": devoir.coefficient
+                })
+
+            items.sort(key=lambda x: x['date'], reverse=True)
+
+            context = {
+                "items": items,
+                "total_quiz": len([item for item in items if item['type'] == 'Quiz']),
+                "total_devoirs": len([item for item in items if item['type'] == 'Devoir'])
+            }
+            return render(request, 'pages/fixed-student-quiz-list.html', context)
+
+        messages.error(request, "Vous n'êtes pas autorisé à accéder à cette page.")
+        return redirect('login')
+
+    except Exception as e:
+        print(f"Erreur dans quiz_list: {str(e)}")
+        messages.error(request, "Une erreur est survenue. Veuillez réessayer plus tard.")
+        return redirect('index_student')
+    
+    
+
+@login_required(login_url='login')
+def take_quiz(request, slug):
+    try:
+        if hasattr(request.user, 'instructor'):
+            return redirect('dashboard')
+        
+        if hasattr(request.user, 'student_user'):
+            quiz = get_object_or_404(Quiz.objects.select_related('cours'), 
+                                   slug=slug, status=True)
+            
+            questions = quiz.quiz_question.filter(
+                status=True
+            ).prefetch_related(
+                'question_reponse'
+            ).order_by('?')
+            
+            if not quiz.status:
+                return redirect('quiz-list')
+
+            data = {
+                'quiz': quiz,
+                'questions': questions,
+                'total_questions': questions.count(),
+                'temps_restant': quiz.temps * 60,
+                'cours': quiz.cours
+            }
+            
+            return render(request, 'pages/fixed-student-take-quiz.html', data)
+
+        return redirect('login')
+
+    except Exception as e:
+        print(f"Erreur dans take_quiz: {str(e)}")
+        return redirect('quiz-list')
+    
+
+
+@login_required(login_url='login')
+def take_devoir(request, slug):
     if request.user.is_authenticated:
         try:
-            try:
-                print("1")
-                if request.user.instructor:
-                    return redirect('dashboard')
-            except Exception as e:
-                print(e)
-                print("2")
-                if request.user.student_user:
-                    datas = {
-
-                           }
-                return render(request,'pages/fixed-student-take-quiz.html',datas)
+            if hasattr(request.user, 'student_user'):
+                devoir = get_object_or_404(Devoir, slug=slug, status=True)
+                data = {
+                    'devoir': devoir,
+                }
+                return render(request, 'pages/fixed-student-take-devoir.html', data)
+            return redirect('dashboard')
         except Exception as e:
             print(e)
-            print("3")
-            return redirect("/admin/")
+            return redirect('quiz-list')
+        
+
+
+# //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        
+
+
 
 @login_required(login_url = 'login')
 def view_course(request):

@@ -37,14 +37,16 @@ class Student(models.Model):
         except:
             return False
 
-
 class StudentReponse(models.Model):
-    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='responses')
-    question = models.ForeignKey(quiz_models.Question, on_delete=models.CASCADE)
-    response_text = models.TextField(default="Pas de réponse")
-    is_correct = models.BooleanField(default=False)
-    status = models.BooleanField(default=True)  # Ajout du champ manquant
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="responses")
+    response_text = models.TextField()
+    date_submitted = models.DateTimeField(auto_now_add=True)
+    status = models.BooleanField(default=True)
     date_add = models.DateTimeField(auto_now_add=True)
 
-    def _str_(self):
-        return f"Response by {self.student.user.username} to {self.question}"
+    class Meta:
+        verbose_name = "Student Response"
+        verbose_name_plural = "Student Responses"
+
+    def __str__(self):
+        return f"{self.student.user.username} - {self.response_text[:20]}"
