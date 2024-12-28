@@ -1,25 +1,26 @@
 from django.db import models
 from django.utils.text import slugify
 from datetime import datetime
-
+from django.contrib.auth.models import User
+from instructor import models as instructor_models
 
 
 # Create your models here.
-# class Filiere(models.Model):
-#     nom = models.CharField(max_length=255)
-#     date_add = models.DateTimeField(auto_now_add=True)
-#     date_update = models.DateTimeField(auto_now=True)
-#     status = models.BooleanField(default=True)
+class Filiere(models.Model):
+    nom = models.CharField(max_length=255)
+    date_add = models.DateTimeField(auto_now_add=True)
+    date_update = models.DateTimeField(auto_now=True)
+    status = models.BooleanField(default=True)
 
+    class Meta:
+        verbose_name = 'Filiere'
+        verbose_name_plural = 'Filieres'
 
-#     class Meta:
-#         verbose_name = 'Filiere'
-#         verbose_name_plural = 'Filieres'
-
-#     def __str__(self):
-#         return self.nom
+    def __str__(self):
+        return self.nom
 
 class Matiere(models.Model):
+    instructor = models.ManyToManyField(instructor_models.Instructor, related_name='instructeur', blank=True)  
     nom = models.CharField(max_length=255)
     image = models.ImageField(upload_to="images/matiere/", null=True)
     description = models.TextField(default="Description du cours")
@@ -63,7 +64,7 @@ class Niveau(models.Model):
 class Classe(models.Model):
     niveau = models.ForeignKey(Niveau,on_delete=models.CASCADE,related_name='classe_niveau')
     numeroClasse = models.IntegerField()
-    # filiere = models.ForeignKey(Filiere,on_delete=models.CASCADE,related_name='classe_filiere',null=True)
+    filiere = models.ForeignKey(Filiere,on_delete=models.CASCADE,related_name='classe_filiere',null=True)
     date_add = models.DateTimeField(auto_now_add=True)
     date_update = models.DateTimeField(auto_now=True)
     status = models.BooleanField(default=True)
@@ -92,6 +93,12 @@ class Chapitre(models.Model):
     date_update = models.DateTimeField(auto_now=True)
     status = models.BooleanField(default=True)
     slug = models.SlugField(unique=True, null=True,  blank=True)
+    instructeur = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    created_by = models.ForeignKey(
+        'auth.User', on_delete=models.CASCADE, related_name='chapitres_crees', 
+        null=True,
+        blank=True
+    )
 
     def save(self, *args, **kwargs):
         self.slug = '-'.join((slugify(self.titre), slugify(self.date_add)))
@@ -125,7 +132,7 @@ class Cours(models.Model):
 
     class Meta:
         verbose_name = 'Cours'
-        verbose_name_plural = 'Courss'
+        verbose_name_plural = 'Cours'
 
     def __str__(self):
         return self.titre

@@ -28,8 +28,17 @@ urlpatterns = [
     path('quiz_results', views.quiz_results, name='quiz-results'),
     path('quizzes', views.quizzes, name='quizzes'),
     path('take_course/<slug>', views.take_course, name='take-course'),
-    path('take_quiz', views.take_quiz, name='take-quiz'),
-    path('view_course', views.view_course, name='view-course'),
+    # path('take_quiz', views.take_quiz, name='take-quiz'),
+    path('take_quiz/<int:quiz_id>/', views.take_quiz, name='take-quiz'),
+
+
+    path('submit_quiz/<slug:quiz_slug>/', views.submit_quiz, name='submit-quiz'),
+    path('quiz_results/', views.quiz_results, name='quiz-results'),  # Pour voir tous les résultats
+    path('quiz_results/<int:result_id>/', views.quiz_results, name='quiz-result-detail'),
+    path('my_results/', views.my_quiz_results, name='my-quiz-results'),
+
+
+    path('view_course/', views.view_course, name='view-course'),
 
 
     ########## post ###############

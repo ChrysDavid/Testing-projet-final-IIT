@@ -13,22 +13,21 @@
                         </div>
                         <div class="clearfix"></div>
                         <div class="card-columns">
-                            
                             {% for i in matiere %}
                             <div class="card">
                                 <div class="card-header text-center">
                                     <h4 class="card-title mb-0"><a href="{% url 'instructor-matiere' i.slug %}">{{ i.nom }}</a></h4>
                                 </div>
                                 <a href="{% url 'instructor-matiere' i.slug %}">
-                                    <img src="{{i.image.url}}" alt="Card image cap" style="width:100%;">
+                                    <img src="{{ i.image.url }}" alt="Card image cap" style="width:100%;">
                                 </a>
                                 <div class="card-body">
                                     {{ i.description }}<br>
                                 </div>
                             </div>
-                                
                             {% endfor %}
                         </div>
+                        
                     
                         <!-- Pagination -->
                         <ul class="pagination justify-content-center pagination-sm">

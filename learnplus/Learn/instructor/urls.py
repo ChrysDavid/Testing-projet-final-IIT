@@ -15,16 +15,19 @@ urlpatterns = [
     path('lesson-edit/<id>/<slug>', views.lesson_edit, name='instructor-lesson-edit'),
     path('messages/<str:classe>/', views.messages, name='instructor-messages'),
     path('profile', views.profile, name='instructor-profile'),
-    path('quiz_edit', views.quiz_edit, name='instructor-quiz-edit'),
-    path('quiz_add', views.quiz_add, name='instructor-quiz-add'),
+    path('quiz_edit/<int:quiz_id>/', views.quiz_edit, name='instructor-quiz-edit'),
+    path('quiz_add/', views.quiz_add, name='instructor-quiz-add'),
     path('review_quiz', views.review_quiz, name='instructor-review-quiz'),
     path('quizzes', views.quizzes, name='instructor-quizzes'),
+    path('add_question/<int:quiz_id>/', views.add_question, name='instructor-add_question'),
+
     
     # post url
     path('post_cours',views.post_cours,name='post_cours') ,
     path('delete_chapitre',views.delete_chapitre,name='delete_chapitre') ,
     path('delete_lesson',views.delete_lesson,name='delete_lesson') ,
     path('post_lesson',views.post_lesson,name='post_lesson'),
+
 
      ########## post ###############
     path('update_profil', views.update_profil, name='update_profil'),

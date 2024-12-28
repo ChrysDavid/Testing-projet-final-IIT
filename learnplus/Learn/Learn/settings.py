@@ -21,17 +21,11 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'bmxg8!+%&d2j*_75^1e6em99wi-4$ok2o#2(2*-^&5w)k!0ts)'
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
-# AUTHENTICATION_BACKENDS = [
-#     'school.authentication.CustomAuthBackend',
-#     'django.contrib.auth.backends.ModelBackend',
-# ]
 
 
 # Application definition
@@ -52,6 +46,7 @@ INSTALLED_APPS = [
     'chat.apps.ChatConfig',
     'quiz.apps.QuizConfig',
     'forum.apps.ForumConfig',
+    'widget_tweaks',
 ]
 
 MIDDLEWARE = [
@@ -99,7 +94,8 @@ CHANNEL_LAYERS = {
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'NAME': ':memory:',
+        # 'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
 

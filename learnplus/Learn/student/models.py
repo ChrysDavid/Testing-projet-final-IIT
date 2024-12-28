@@ -25,7 +25,7 @@ class Student(models.Model):
         verbose_name = 'Student'
         verbose_name_plural = 'Students'
 
-    def __str__(self):
+    def _str_(self):
         return self.user.username
 
     @property
@@ -37,14 +37,13 @@ class Student(models.Model):
         except:
             return False
 
+from django.db import models
 
 class StudentReponse(models.Model):
-    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='responses')
-    question = models.ForeignKey(quiz_models.Question, on_delete=models.CASCADE)
-    response_text = models.TextField(default="Pas de réponse")
-    is_correct = models.BooleanField(default=False)
-    status = models.BooleanField(default=True)  # Ajout du champ manquant
-    date_add = models.DateTimeField(auto_now_add=True)
+    student = models.ForeignKey('Student', on_delete=models.CASCADE)
+    question = models.TextField()
+    reponse = models.TextField()
+    status = models.BooleanField(default=True)
 
     def _str_(self):
-        return f"Response by {self.student.user.username} to {self.question}"
+        return f"{self.student} - {self.question}"

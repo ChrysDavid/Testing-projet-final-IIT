@@ -1,4 +1,5 @@
-from django.shortcuts import render, redirect
+from datetime import datetime
+from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth.decorators import login_required
 from school import models as school_models
 from quiz import models as quiz_models
@@ -13,28 +14,23 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
 
 # Create your views here.
-@login_required(login_url = 'login')
+@login_required(login_url='login')
 def dashboard(request):
     if request.user.is_authenticated:
         try:
-            try:
-                print("1")
-                if request.user.student_user:
-                    return redirect('index_student')
-            except Exception as e:
-                print(e)
-                print("2")
-                if request.user.instructor:
-                    matiere = school_models.Matiere.objects.filter(status=True)
-                    datas = {
-                        'matiere':matiere,
-                    }
-                    return render(request,'pages/instructor-dashboard.html',datas)
+            if hasattr(request.user, 'student_user') and request.user.student_user:
+                return redirect('index_student')
+            elif hasattr(request.user, 'instructor') and request.user.instructor:
+                instructor = request.user.instructor  # Récupérer l'instructeur connecté
+                matiere = instructor.matieres.filter(status=True)  # Filtrer les matières actives associées à cet instructeur
+                datas = {
+                    'matiere': matiere,
+                }
+                return render(request, 'pages/instructor-dashboard.html', datas)
         except Exception as e:
             print(e)
-            print("3")
             return redirect("/admin/")
-    
+
  
 
 
@@ -110,29 +106,24 @@ def account_edit(request):
 
 
 
-@login_required(login_url = 'login')
 def course_add(request):
     if request.user.is_authenticated:
         try:
-            try:
-                print("1")
-                if request.user.student_user:
-                    return redirect('index_student') 
-            except Exception as e:
-                print(e)
-                print("2")
+            if hasattr(request.user, 'student_user') and request.user.student_user:
+                return redirect('index_student')
+            if hasattr(request.user, 'instructor') and request.user.instructor:
+                # Récupérer l'instance de l'instructeur associée à l'utilisateur connecté
+                instructor = request.user.instructor  # Supposons que vous avez une relation 'instructor' sur le modèle User
 
-                if request.user.instructor:
-                    matiere = school_models.Matiere.objects.filter(status=True)
-                    datas = {
-                        'matiere':matiere,
-                    }
-                    return render(request,'pages/instructor-course-add.html',datas)
+                # Récupérer uniquement les matières assignées à cet instructeur
+                matiere = school_models.Matiere.objects.filter(instructors=instructor, status=True)
+                datas = {
+                    'matiere': matiere,
+                }
+                return render(request, 'pages/instructor-course-add.html', datas)
         except Exception as e:
             print(e)
-            print("3")
             return redirect("/admin/")
-
 
 
 @login_required(login_url = 'login')
@@ -162,33 +153,14 @@ def course_edit(request, slug):
             return redirect("/admin/")
 
 
-
-
-
 @login_required(login_url = 'login')
 def courses(request):
     if request.user.is_authenticated:
-        try:
-            try:
-                print("1")
-                if request.user.student_user:
-                    return redirect('index_student') 
-            except Exception as e:
-                print(e)
-                print("2")
-                if request.user.instructor:
-                    Chapitre = school_models.Chapitre.objects.filter(Q(status=True) & Q(classe=request.user.instructor.classe))
-                    datas = {
-                            'Chapitre' : Chapitre ,
-                           }
-                    return render(request,'pages/instructor-courses.html',datas)
-        except Exception as e:
-            print(e)
-            print("3")
-            return redirect("/admin/")
-
-
-
+        Chapitre = school_models.Chapitre.objects.filter(Q(status=True) & Q(classe=request.user.instructor.classe))
+        datas = {
+                'Chapitre' : Chapitre ,
+                }
+        return render(request,'pages/instructor-courses.html',datas)
 
 
 @login_required(login_url = 'login')
@@ -529,9 +501,6 @@ def messages(request, classe):
   
 
 
-
-
-
 @login_required(login_url = 'login')
 def profile(request):
     if request.user.is_authenticated:
@@ -544,9 +513,10 @@ def profile(request):
                 print(e)
                 print("2")
                 if request.user.instructor:
+                    instructor = request.user.instructor  # Récupérer l'instance de l'instructeur associé à l'utilisateur
                     datas = {
-
-                           }
+                        'instructor': instructor,   
+                    }
                     return render(request,'pages/instructor-profile.html',datas)
         except Exception as e:
             print(e)
@@ -554,55 +524,128 @@ def profile(request):
             return redirect("/admin/")
 
 
+@login_required(login_url='login')
+def quiz_edit(request, quiz_id):
+    # Récupérer le quiz en fonction de l'ID
+    quiz = get_object_or_404(quiz_models.Quiz, id=quiz_id, instructor=request.user)
 
+    if request.method == 'POST':
+        # Mettre à jour les informations du quiz
+        quiz.titre = request.POST.get('titre')
+        quiz.cours_id = request.POST.get('cours')  # Assurez-vous que ce champ est dans le formulaire
+        if 'image' in request.FILES:
+            quiz.image = request.FILES['image']
+        quiz.save()
 
-
-@login_required(login_url = 'login')
-def quiz_edit(request):
+        # Rediriger après mise à jour
+        return redirect('instructor-quizzes')
     if request.user.is_authenticated:
-        try:
-            try:
-                print("1")
-                if request.user.student_user:
-                    return redirect('index_student')
-            except Exception as e:
-                print(e)
-                print("2")
-                if request.user.instructor:
-                    datas = {
+        if hasattr(request.user, 'instructor') and request.user.instructor:
+            instructor = request.user.instructor
+            # Récupérer les questions associées au quiz
+            matiere = school_models.Matiere.objects.filter(instructors=instructor, status=True)
+            questions = quiz.questions.all()
 
-                           }
-                    return render(request,'pages/instructor-quiz-edit.html',datas)
-        except Exception as e:
-            print(e)
-            print("3")
-            return redirect("/admin/")
+            # Passer les données au template
+            datas = {
+                'quiz': quiz,
+                'matiere': matiere,
+                'questions': questions,
 
+            }
+            return render(request, 'pages/instructor-quiz-edit.html', datas)
 
-
-
-@login_required(login_url = 'login')
+@login_required(login_url='login')
 def quiz_add(request):
-    if request.user.is_authenticated:
+    if request.method == 'POST':
+        # Récupération des données du formulaire
+        titre = request.POST.get('titre')
+        image = request.FILES.get('image', None)
+        time_value = request.POST.get('time_value', 0)
+        time_unit = request.POST.get('time_unit', 'hour')
+
+        # Vérifier si l'utilisateur est un instructeur
         try:
-            try:
-                print("1")
-                if request.user.student_user:
-                    return redirect('index_student')
-            except Exception as e:
-                print(e)
-                print("2")
-                if request.user.instructor:
-                    datas = {
+            instructor = request.user.instructor  # Accès à l'instructeur via la relation OneToOneField
+        except models.Instructor.DoesNotExist:
+            messages.error(request, "Vous devez être un instructeur pour créer un quiz.")
+            return redirect('quiz_add')
 
-                           }
-                    return render(request,'pages/instructor-quiz-add.html',datas)
-        except Exception as e:
-            print(e)
-            print("3")
-            return redirect("/admin/")
+        # Conversion de la durée en minutes
+        try:
+            temps = int(time_value)
+            if time_unit == 'hour':
+                temps *= 60
+        except ValueError:
+            temps = 0
 
+        # Génération manuelle du slug
+        slug = '-'.join(titre.lower().replace(' ', '-').replace('.', '').replace(',', '').split()) + f"-{datetime.now().microsecond}"
 
+        # Création du Quiz
+        quiz = quiz_models.Quiz.objects.create(
+            instructor=request.user,  # L'utilisateur est passé directement
+            titre=titre,
+            image=image,
+            temps=temps,
+            slug=slug
+        )
+        quiz.save()
+
+        return redirect('instructor-quizzes')    
+    if request.method == 'POST':
+        # Récupération des données du formulaire
+        titre = request.POST.get('titre')
+        image = request.FILES.get('image', None)
+        date = request.POST.get('date')
+        time_value = request.POST.get('time_value', 0)
+        time_unit = request.POST.get('time_unit', 'hour')
+
+        # Vérifier si l'utilisateur est un instructeur
+        try:
+            instructor = request.user.instructor  # Accès à l'instructeur via la relation OneToOneField
+        except models.Instructor.DoesNotExist:
+            messages.error(request, "Vous devez être un instructeur pour créer un quiz.")
+            return redirect('quiz_add')
+
+        # Conversion de la durée en minutes
+        try:
+            temps = int(time_value)
+            if time_unit == 'hour':
+                temps *= 60
+        except ValueError:
+            temps = 0
+
+        # Génération manuelle du slug
+        slug = '-'.join(titre.lower().replace(' ', '-').replace('.', '').replace(',', '').split()) + f"-{datetime.now().microsecond}"
+
+        # Création du Quiz
+        quiz = quiz_models.Quiz.objects.create(
+            instructor=request.user,  # L'utilisateur est passé directement
+            date=datetime.now().strftime('%Y-%m-%d'),  # Format YYYY-MM-DD pour le champ date
+            titre=titre,
+            image=image,
+            temps=temps,
+            slug=slug
+        )
+        quiz.save()
+
+        # Message de succès et redirection
+        messages.success(request, "Quiz créé avec succès.")
+        return redirect('instructor-quizzes')
+    
+    if request.user.is_authenticated:
+        if hasattr(request.user, 'instructor') and request.user.instructor:
+            instructor = request.user.instructor
+            matiere = school_models.Matiere.objects.filter(instructors=instructor, status=True)
+
+            datas = {
+                'matiere': matiere,
+            }
+
+            return render(request, 'pages/instructor-quiz-add.html', datas)
+
+    return redirect('login')
 
 
 
@@ -631,29 +674,20 @@ def quiz_add(request):
 
 
 
-@login_required(login_url = 'login')
+@login_required(login_url='login')
 def quizzes(request):
-    if request.user.is_authenticated:
-        try:
-            try:
-                print("1")
-                if request.user.student_user:
-                    return redirect('index_student')
-            except Exception as e:
-                print(e)
-                print("2")
-                if request.user.instructor:
-                    datas = {
+    # Vérifiez si l'utilisateur est un instructeur
+    if hasattr(request.user, 'instructor') and request.user.instructor:
+        # Récupérer les quizzes créés par cet instructeur
+        quizzes = quiz_models.Quiz.objects.filter(instructor=request.user).order_by('-date_add')
 
-                           }
-                    return render(request,'pages/instructor-quizzes.html',datas)
-        except Exception as e:
-            print(e)
-            print("3")
-            return redirect("/admin/")
+        datas = {
+            'quizzes': quizzes  # Passer les quizzes filtrés au template
+        }
+        return render(request, 'pages/instructor-quizzes.html', datas)
 
-
-
+    # Si l'utilisateur n'est pas un instructeur, redirigez ou affichez un message
+    return redirect('login')
 
 
 @login_required(login_url = 'login')
@@ -1023,6 +1057,8 @@ def post_forum(request):
         forum.save()
         val = forum.slug
         success = True 
+
+
         message = "Votre sujet a bien été ajouté!"
     except Exception as e:
         print(e)
@@ -1034,3 +1070,50 @@ def post_forum(request):
         "forum": val,
         }
     return JsonResponse(data,safe=False)
+
+
+def add_question(request, quiz_id):
+    quiz = get_object_or_404(quiz_models.Quiz, id=quiz_id)
+
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        question_type = request.POST.get('type')
+        score = int(request.POST.get('score', 0))
+        timeframe_enabled = request.POST.get('timeframe_enabled') == 'on'
+        timeframe_duration = request.POST.get('timeframe_duration') if timeframe_enabled else None
+        timeframe_unit = request.POST.get('timeframe_unit') if timeframe_enabled else None
+
+        question = quiz_models.Question.objects.create(
+            quiz=quiz,
+            title=title,
+            question_type=question_type,
+            score=score,
+            timeframe_enabled=timeframe_enabled,
+            timeframe_duration=timeframe_duration,
+            timeframe_unit=timeframe_unit,
+        )
+
+        # Gestion des réponses pour QCM
+        if question_type == 'qcm':
+            answers = request.POST.getlist('answers[]')  # Liste des réponses
+            correct_answers = request.POST.getlist('correct_answers[]')  # Liste des réponses correctes
+            for idx, answer_text in enumerate(answers):
+                is_correct = str(idx) in correct_answers
+                quiz_models.Reponse.objects.create(
+                    question=question,
+                    reponse=answer_text,  # Utilisez "reponse" ici
+                    is_True=is_correct
+                )
+
+        # Gestion de la réponse pour Question-Réponse
+        elif question_type == 'question-reponse':
+            correct_answer = request.POST.get('correct_answer')
+            quiz_models.Reponse.objects.create(
+                question=question,
+                reponse=correct_answer,  # Utilisez "reponse" ici
+                is_True=True
+            )
+
+        return redirect('instructor-quizzes')
+
+    return render(request, 'pages/instructor-add_question.html', {'quiz': quiz})

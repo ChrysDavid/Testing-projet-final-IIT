@@ -115,8 +115,8 @@
     <!-- Messages App -->
     <script src="/static/assets/js/reconnecting-websocket.js"></script>
     <script>
-        var classe = {{ classe_json }};
-        var username = {{ username }};
+    var classe = ('{{ classe_json|safe }}');
+    var username = '{{ username|escapejs }}';
 
         console.log(classe)
 

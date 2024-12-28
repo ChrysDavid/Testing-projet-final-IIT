@@ -28,60 +28,51 @@
                         </div>
 
                         <div class="row">
-                            {% for i in Chapitre %}
-                            <div class="col-md-6">
-                                <div class="card">
-                                    <div class="card-body">
-
-                                        <div class="d-flex flex-column flex-sm-row">
-                                            <a href="{% url 'course-edit' i.slug %}" class="avatar avatar-lg avatar-4by3 mb-3 w-xs-plus-down-100 mr-sm-3">
-                                                <img src="{{ i.image.url }}" alt="Card image cap" class="avatar-img rounded">
-                                            </a>
-                                            <div class="flex" style="min-width: 200px;">
-                                                <!-- <h5 class="card-title text-base m-0"><a href="{% url 'course-edit' i.slug %}"><strong>Learn Vue.js</strong></a></h5> -->
-                                                <h4 class="card-title mb-1"><a href="{% url 'course-edit' i.slug %}">{{i.matiere}}</a></h4>
-                                                <div class="d-flex align-items-center py-1 border-bottom">
-                                                    <small class="text-black-70 mr-2">{{i.duree_en_heure}} heure</small>
-                                                    <small class="text-black-50">Debut: {{i.date_debut}}</small>
-                                                </div>
-                                                <p class="text-black-70">{{i.titre}}</p>
-                                                
-                                                {% for c in i.cours_chapitre.all %}
-                                                    
-                                                <div class="d-flex align-items-end">
-                                                    <div class="d-flex flex flex-column mr-3">
-                                                        <div class="d-flex align-items-center py-1 border-bottom">
-                                                            <small class="text-black-50">{{c.date_add}}</small>
-                                                        </div>
-
-                                                        <div class="d-flex align-items-center py-1">
-                                                            <small class="text-muted">{{ c.titre }}</small>
+                            <div class="row">
+                                {% if Chapitre %}
+                                    {% for i in Chapitre %}
+                                        <div class="col-md-6">
+                                            <div class="card">
+                                                <div class="card-body">
+                            
+                                                    <div class="d-flex flex-column flex-sm-row">
+                                                        <a href="{% url 'course-edit' i.slug %}" class="avatar avatar-lg avatar-4by3 mb-3 w-xs-plus-down-100 mr-sm-3">
+                                                            <img src="{{ i.image.url }}" alt="Card image cap" class="avatar-img rounded">
+                                                        </a>
+                                                        <div class="flex" style="min-width: 200px;">
+                                                            <h4 class="card-title mb-1"><a href="{% url 'course-edit' i.slug %}">{{ i.matiere }}</a></h4>
+                                                            <div class="d-flex align-items-center py-1 border-bottom">
+                                                                <small class="text-black-70 mr-2">{{ i.duree_en_heure }} heure</small>
+                                                                <small class="text-black-50">Début: {{ i.date_debut }}</small>
+                                                            </div>
+                                                            <p class="text-black-70">{{ i.titre }}</p>
+                                                            
+                                                            {% for c in i.cours_chapitre.all %}
+                                                            <div class="d-flex align-items-end">
+                                                                <div class="d-flex flex-column mr-3">
+                                                                    <div class="d-flex align-items-center py-1 border-bottom">
+                                                                        <small class="text-black-50">{{ c.date_add }}</small>
+                                                                    </div>
+                                                                    <div class="d-flex align-items-center py-1">
+                                                                        <small class="text-muted">{{ c.titre }}</small>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="text-center">
+                                                                    <a href="{% url 'instructor-lesson-edit' i.id c.slug %}" class="btn btn-sm btn-white">Edit</a>
+                                                                </div>
+                                                            </div>
+                                                            {% endfor %}
                                                         </div>
                                                     </div>
-                                                    <div class="text-center">
-                                                        <a href="{% url 'instructor-lesson-edit' i.id c.slug %}" class="btn btn-sm btn-white">Edit</a>
-                                                    </div>
                                                 </div>
-                                                {% endfor %}
-                                                    
                                             </div>
                                         </div>
-
-                                    </div>
-                                    <div class="card__options dropdown right-0 pr-2">
-                                        <a href="#" class="dropdown-toggle text-muted" data-caret="false" data-toggle="dropdown">
-                                            <i class="material-icons">more_vert</i>
-                                        </a>
-                                        <div class="dropdown-menu dropdown-menu-right">
-                                            <a  class="dropdown-item" href="{% url 'course-edit' i.slug %}">Edit course</a>
-                                            <a style="color: darkgreen;" class="dropdown-item" href="{% url 'instructor-lesson-add' i.slug %}">Ajouter une leçon</a>
-                                            <div class="dropdown-divider"></div>
-                                            <a class="dropdown-item text-danger" href="javascript:;" v-on:click.prevent="delete_chapitre({{ i.id }})">Delete course</a>
-                                        </div>
-                                    </div>
-                                </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <p>Aucun chapitre trouvé.</p>
+                                {% endif %}
                             </div>
-                          {% endfor %}
+                            
                         </div>
 
                         <!-- Pagination -->

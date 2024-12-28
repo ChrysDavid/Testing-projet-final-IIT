@@ -10,20 +10,18 @@
                             <li class="breadcrumb-item active">Profile</li>
                         </ol>
 
+                        <!-- Instructor Info Section -->
                         <div class="text-center">
-                            <a href="#"><img src="/static/assets/images/people/110/guy-8.jpg" alt="" class="rounded-circle"></a>
-                            <h1 class="h2 mb-0 mt-1">Adrian Demian</h1>
-                            <p class="lead text-muted mb-0">Florida, USA</p>
-                            <div class="badge badge-primary ">INSTRUCTOR</div>
+                            <!-- Affichage de la photo de profil -->
+                            <a href="#"><img src="{{ instructor.photo.url }}" alt="Instructor Profile Photo" class="rounded-circle" width="150"></a>
+                            <!-- Affichage du nom complet de l'instructeur -->
+                            <p class="lead text-muted mb-0">Username: {{ instructor.user.username }}</p>
+                            <!-- Affichage du contact de l'instructeur -->
+                            <p class="lead text-muted mb-0">Contact: {{ instructor.contact }}</p>
+                            <!-- Affichage de l'email de l'instructeur -->
+                            <p class="lead text-muted mb-0">Email: {{ instructor.user.email }}</p>
+                            <div class="badge badge-primary">INSTRUCTOR</div>
                             <hr>
-                            <h5 class="text-muted mb-1">Instructor Rating</h5>
-                            <div class="rating">
-                                <i class="material-icons text-success">star</i>
-                                <i class="material-icons text-success">star</i>
-                                <i class="material-icons text-success">star</i>
-                                <i class="material-icons text-muted-light">star_border</i>
-                                <i class="material-icons text-muted-light">star_border</i>
-                            </div>
                         </div>
                         <hr>
                         <h4>Courses by Adrian</h4>
