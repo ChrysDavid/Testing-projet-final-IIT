@@ -1,0 +1,25 @@
+name: Flake8 Linting
+
+on: [push, pull_request]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.8
+    - name: Install dependencies
+      run: |
+        pip install flake8 flake8-html
+    - name: Run Flake8
+      run: |
+        flake8 --format=html --htmldir=flake8_report
+    - name: Upload Flake8 report
+      uses: actions/upload-artifact@v3
+      with:
+        name: flake8-html-report
+        path: flake8_report
